@@ -62,7 +62,7 @@ public class DrawActivity extends AppCompatActivity {
 
         bug_count = intent.getIntExtra("bugs", 10);
 
-        bugs = new ArrayList<Bug>();
+        bugs = new ArrayList<>();
         BugThread bugThread;
         for(int i=0; i< bug_count; i++){
             int img = (int) (Math.random() * 2);
@@ -129,24 +129,21 @@ public class DrawActivity extends AppCompatActivity {
             super(context);
 
             // установим обработчик касаний
-            this.setOnTouchListener(new OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
+            this.setOnTouchListener((v, event) -> {
 
-                    for(Bug bug: bugs){
-                        int X = (int )event.getX();
-                        int Y = (int) event.getY();
+                for(Bug bug: bugs){
+                    int X = (int )event.getX();
+                    int Y = (int) event.getY();
 
-                        if( (bug.getX()+24 >= X && bug.getX()+24 <= X+bitmap.getWidth()) && (bug.getY()+24 >= Y && bug.getY()+24 <= Y+bitmap.getHeight())) {
-                            bug.setLives(false);
-                            sounds.play(crack, 1.0f, 1.0f, 0, 0, 1.5f);
-                            bug.setdX(0);
-                            bug.setdY(0);
-                            score += bug.getSpeed();
-                        }
+                    if( (bug.getX()+24 >= X && bug.getX()+24 <= X+bitmap.getWidth()) && (bug.getY()+24 >= Y && bug.getY()+24 <= Y+bitmap.getHeight())) {
+                        bug.setLives(false);
+                        sounds.play(crack, 1.0f, 1.0f, 0, 0, 1.5f);
+                        bug.setdX(0);
+                        bug.setdY(0);
+                        score += bug.getSpeed();
                     }
-                    return false;
                 }
+                return false;
             });
 
 
@@ -220,60 +217,61 @@ public class DrawActivity extends AppCompatActivity {
                         if (canvas == null)
                             continue;
 
+                            synchronized (surfaceHolder){
 
-                            canvas.drawColor(Color.GREEN);
+                                canvas.drawColor(Color.GREEN);
 
-                            for (Bug bug: bugs ) {
-                                bug.setX(bug.getX()+bug.getdX());
-                                bug.setY(bug.getY()+ bug.getdY());
+                                for (Bug bug: bugs ) {
+                                    bug.setX(bug.getX()+bug.getdX());
+                                    bug.setY(bug.getY()+ bug.getdY());
 
 
-                                // выбираем нужный спрайт
+                                    // выбираем нужный спрайт
 
-                                if(bug.isLives()){
-                                    switch (bug.getImg()) {
-                                        case 0: bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.bug);
-                                            break;
-                                        case 1: bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.bee);
-                                            break;
+                                    if(bug.isLives()){
+                                        switch (bug.getImg()) {
+                                            case 0: bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.bug);
+                                                break;
+                                            case 1: bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.bee);
+                                                break;
+                                        }
+
+                                        matrix.reset();
+                                        matrix.postTranslate(-bitmap.getWidth() / 2, -bitmap.getHeight() / 2); // Центрируем матрицу по спрайту
+                                        matrix.postRotate(bug.getAngle()); // поворачиваем матрицу спрайта по направлению движения
+                                        onScreenOut(bug); // проверяем на выход за границы экрана
+
+                                        matrix.postTranslate(bug.getX(), bug.getY());  // смещаем матрицу спрайта на новые координаты
+
+
+                                        canvas.drawBitmap(bitmap, matrix, paint); // рисуем спрайт с применной матрицей трансформаций
+
+                                    } else {
+
+                                        switch (bug.getImg()) {
+                                            case 0: bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bug_dead);
+                                                break;
+                                            case 1: bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bee_dead);
+                                                break;
+                                        }
+
+                                        matrix.reset();
+                                        matrix.postTranslate(-bitmap.getWidth() / 2, -bitmap.getHeight() / 2); // Центрируем матрицу по спрайту
+                                        matrix.postRotate(bug.getAngle()); // поворачиваем матрицу спрайта по направлению движения
+                                        matrix.postTranslate(bug.getX(), bug.getY());  // смещаем матрицу спрайта на новые координаты
+                                        canvas.drawBitmap(bitmap, matrix, paint); // рисуем спрайт с применной матрицей трансформаций
+
                                     }
-
-                                    matrix.reset();
-                                    matrix.postTranslate(-bitmap.getWidth() / 2, -bitmap.getHeight() / 2); // Центрируем матрицу по спрайту
-                                    matrix.postRotate(bug.getAngle()); // поворачиваем матрицу спрайта по направлению движения
-                                    onScreenOut(bug); // проверяем на выход за границы экрана
-
-                                    matrix.postTranslate(bug.getX(), bug.getY());  // смещаем матрицу спрайта на новые координаты
-
-
-                                    canvas.drawBitmap(bitmap, matrix, paint); // рисуем спрайт с применной матрицей трансформаций
-
-                                } else {
-
-                                    switch (bug.getImg()) {
-                                        case 0: bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bug_dead);
-                                            break;
-                                        case 1: bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bee_dead);
-                                            break;
-                                    }
-
-                                    matrix.reset();
-                                    matrix.postTranslate(-bitmap.getWidth() / 2, -bitmap.getHeight() / 2); // Центрируем матрицу по спрайту
-                                    matrix.postRotate(bug.getAngle()); // поворачиваем матрицу спрайта по направлению движения
-                                    matrix.postTranslate(bug.getX(), bug.getY());  // смещаем матрицу спрайта на новые координаты
-                                    canvas.drawBitmap(bitmap, matrix, paint); // рисуем спрайт с применной матрицей трансформаций
-
                                 }
+
+                                paint.setColor(Color.RED);
+                                paint.setTextSize(64);
+                                canvas.drawText("Очки: " + score,12,60, paint);
+
+                                paint.setColor(Color.BLUE);
+                                paint.setTextSize(64);
+                                canvas.drawText("Время: " + timeFormat(time),WIDTH_DEVICE - 360,60, paint);
                             }
-
-                            paint.setColor(Color.RED);
-                            paint.setTextSize(64);
-                            canvas.drawText("Очки: " + score,12,60, paint);
-
-                            paint.setColor(Color.BLUE);
-                            paint.setTextSize(64);
-                            canvas.drawText("Время: " + timeFormat(time),WIDTH_DEVICE - 360,60, paint);
-
 
                     }
 
