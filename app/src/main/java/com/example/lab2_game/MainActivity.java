@@ -1,8 +1,12 @@
 package com.example.lab2_game;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -16,13 +20,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText bugsNum;
     private TextView scores;
     private TextView record;
+    private int RECORD;
     SharedPreferences sPref;
-    private DrawView drawView;
 
     private int score;
 
-    final String LOGIN = "Login";
-    final String SCORES = "Scores";
+    String LOGIN;
+    public static int BUG_COUNT = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,19 +47,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void loadSettings() {
         sPref = getPreferences(MODE_PRIVATE);
-        String s = sPref.getString(LOGIN,"");
-        int sc = sPref.getInt(SCORES, 0);
-        name.setText(s);
-        record.setText(""+sc);
+        LOGIN = sPref.getString("LOGIN","");
+        RECORD = sPref.getInt("SCORES", 0);
+        name.setText(LOGIN);
+        record.setText(""+RECORD);
     }
 
     private void saveSettings() {
         sPref = getPreferences(MODE_PRIVATE);
         if(name.getText().length() != 0){
             SharedPreferences.Editor ed = sPref.edit();
-            ed.putString(LOGIN, name.getText().toString());
-            if(score > Integer.valueOf(record.getText().toString())){
-                ed.putInt(SCORES, score);
+            ed.putString("LOGIN", name.getText().toString());
+            if(score > RECORD){
+                ed.putInt("SCORES", score);
             }
             ed.commit();
         }
@@ -63,20 +67,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        int bug;
 
-        //setContentView(R.layout.activity_main);
-
-        drawView = new DrawView(this);
-        setContentView(drawView);
-        //drawView.setZOrderOnTop(true);
-
+        if(v.getId() == R.id.btStart){
+            if(bugsNum.getText().length() == 0){
+                bug = 10;
+                bugsNum.setText(""+bug);
+            } else bug = Integer.parseInt(bugsNum.getText().toString());
+            if(bug <= 0 || bug > 50) bug = BUG_COUNT;
+            if(name.getText().length() == 0){
+                Toast.makeText(this,"Для старта игры необходимо ввести имя игрока", Toast.LENGTH_SHORT).show();
+            } else {
+                saveSettings();
+                Intent intent = new Intent(this, DrawActivity.class);
+                intent.putExtra("bugs", bug);
+                startActivityForResult(intent, 444);
+            }
+        }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
+        if (requestCode == 444){
+            loadSettings();
+            score = data.getIntExtra("SCORE", 0);
+            scores.setText(""+score);
+            return;
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
 
     @Override
     protected void onDestroy() {
         saveSettings();
-
         super.onDestroy();
 
     }
+
 }

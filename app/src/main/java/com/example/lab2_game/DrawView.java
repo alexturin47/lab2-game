@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.view.CollapsibleActionView;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -16,6 +15,8 @@ import androidx.annotation.NonNull;
 public class DrawView extends SurfaceView implements SurfaceHolder.Callback {
 
     private DrawThread drawThread;
+    private Bitmap bitmap;
+    private Matrix matrix;
 
     public DrawView(Context context) {
         super(context);
@@ -49,6 +50,12 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback {
                // e.printStackTrace();
             }
         }
+
+    }
+
+    public void Close(){
+        //SurfaceHolder holder = getHolder();
+        surfaceDestroyed(getHolder());
     }
 
 
@@ -56,8 +63,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback {
 
         private boolean runFlag = false;
         private SurfaceHolder surfaceHolder;
-        private Bitmap bitmap;
-        private Matrix matrix;
         private long prevTime;
 
         public DrawThread(SurfaceHolder surfaceHolder, Resources resources){
@@ -74,7 +79,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         public void setRunning(boolean run){
-            runFlag = true;
+            runFlag = run;
         }
 
         @Override
